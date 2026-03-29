@@ -3,20 +3,25 @@ const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfm4L7y-Kx7NR
 
 const videoList = document.getElementById('videoList');
 
-// AMBIL DATA DARI GOOGLE SHEET
-async function getVideos() {
-  const res = await fetch(sheetURL);
-  const data = await res.text();
-
-  const rows = data.split("\n").slice(1);
-  const videos = rows.map(row => {
-    const cols = row.split(",");
+// PARSE CSV LEBIH AMAN
+function parseCSV(text) {
+  const rows = text.trim().split("\n");
+  const data = rows.slice(1).map(row => {
+    const cols = row.split(/,(?=(?:(?:[^\"]*\"){2})*[^\"]*$)/);
     return {
       title: cols[0],
       thumbnail: cols[1],
       link: cols[2]
     };
   });
+  return data;
+}
+
+// AMBIL DATA
+async function getVideos() {
+  const res = await fetch(sheetURL);
+  const text = await res.text();
+  const videos = parseCSV(text);
 
   displayVideos(videos);
 
@@ -33,10 +38,13 @@ async function getVideos() {
 // TAMPILKAN VIDEO
 function displayVideos(list) {
   videoList.innerHTML = '';
+
   list.forEach(video => {
+    if (!video.link) return;
+
     videoList.innerHTML += `
       <div class="card" onclick="playVideo('${video.link}')">
-        <img class="thumbnail" src="${video.thumbnail}">
+        <img class="thumbnail" src="${video.thumbnail}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
         <div class="title">${video.title}</div>
       </div>
     `;
@@ -55,6 +63,6 @@ function closeVideo() {
   document.getElementById('player').src = '';
 }
 
-// LOAD DATA
+// LOAD
 getVideos();
 </script>
