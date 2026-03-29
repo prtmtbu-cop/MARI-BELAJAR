@@ -1,148 +1,36 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EduFlix</title>
-
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #141414;
-  color: white;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 30px;
-  background: #000;
-}
-
-header h1 {
-  color: red;
-}
-
-#search {
-  padding: 8px;
-  width: 250px;
-  border-radius: 5px;
-  border: none;
-}
-
-.banner {
-  height: 300px;
-  background: linear-gradient(to top, #141414, transparent),
-  url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f');
-  background-size: cover;
-  display: flex;
-  align-items: end;
-  padding: 30px;
-  font-size: 28px;
-  font-weight: bold;
-}
-
-.container {
-  padding: 20px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-}
-
-.card {
-  background: #222;
-  border-radius: 10px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: scale(1.05);
-}
-
-.thumbnail {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-}
-
-.title {
-  padding: 10px;
-}
-
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.9);
-  display: none;
-  justify-content: center;
-  align-items: center;
-}
-
-.modal iframe {
-  width: 80%;
-  height: 70%;
-  border-radius: 10px;
-}
-
-.close {
-  position: absolute;
-  top: 20px;
-  right: 30px;
-  font-size: 30px;
-  cursor: pointer;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <h1>EduFlix</h1>
-  <input type="text" id="search" placeholder="Cari video...">
-</header>
-
-<div class="banner">
-  Selamat Datang di EduFlix 🎬
-</div>
-
-<div class="container">
-  <div class="grid" id="videoList"></div>
-</div>
-
-<!-- POPUP PLAYER -->
-<div class="modal" id="modal">
-  <span class="close" onclick="closeVideo()">&times;</span>
-  <iframe id="player" src="" allow="autoplay"></iframe>
-</div>
-
 <script>
-// ================= DATA VIDEO =================
-const videos = [
-  {
-    title: "Materi 1 - Edukasi",
-    thumbnail: "https://via.placeholder.com/400x200?text=Materi+1",
-    link: "https://drive.google.com/file/d/1clYmhw9jjuMVfxGf8VpzjUVhm6pj3Z--/preview"
-  },
-  {
-    title: "Materi 2 - Training",
-    thumbnail: "https://via.placeholder.com/400x200?text=Materi+2",
-    link: "https://drive.google.com/file/d/1clYmhw9jjuMVfxGf8VpzjUVhm6pj3Z--/preview"
-  }
-];
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfm4L7y-Kx7NREfMw9T-MprqGUlhN2fWYYf6FSAhCHAcC0w_Z7C1PwzTtSNJeue5NXmrjz60KMPUfo/pub?output=csv";
 
-// ================= TAMPILKAN VIDEO =================
 const videoList = document.getElementById('videoList');
 
+// AMBIL DATA DARI GOOGLE SHEET
+async function getVideos() {
+  const res = await fetch(sheetURL);
+  const data = await res.text();
+
+  const rows = data.split("\n").slice(1);
+  const videos = rows.map(row => {
+    const cols = row.split(",");
+    return {
+      title: cols[0],
+      thumbnail: cols[1],
+      link: cols[2]
+    };
+  });
+
+  displayVideos(videos);
+
+  // SEARCH
+  document.getElementById('search').addEventListener('input', function() {
+    const keyword = this.value.toLowerCase();
+    const filtered = videos.filter(v =>
+      v.title.toLowerCase().includes(keyword)
+    );
+    displayVideos(filtered);
+  });
+}
+
+// TAMPILKAN VIDEO
 function displayVideos(list) {
   videoList.innerHTML = '';
   list.forEach(video => {
@@ -155,30 +43,18 @@ function displayVideos(list) {
   });
 }
 
-// ================= PLAY VIDEO =================
+// PLAY VIDEO
 function playVideo(link) {
   document.getElementById('modal').style.display = 'flex';
   document.getElementById('player').src = link;
 }
 
-// ================= CLOSE VIDEO =================
+// CLOSE VIDEO
 function closeVideo() {
   document.getElementById('modal').style.display = 'none';
   document.getElementById('player').src = '';
 }
 
-// ================= SEARCH =================
-document.getElementById('search').addEventListener('input', function() {
-  const keyword = this.value.toLowerCase();
-  const filtered = videos.filter(v =>
-    v.title.toLowerCase().includes(keyword)
-  );
-  displayVideos(filtered);
-});
-
-// ================= LOAD AWAL =================
-displayVideos(videos);
+// LOAD DATA
+getVideos();
 </script>
-
-</body>
-</html>
