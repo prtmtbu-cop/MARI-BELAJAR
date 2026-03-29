@@ -1,27 +1,12 @@
 <script>
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfm4L7y-Kx7NREfMw9T-MprqGUlhN2fWYYf6FSAhCHAcC0w_Z7C1PwzTtSNJeue5NXmrjz60KMPUfo/pub?output=csv";
+const sheetURL = "https://opensheet.elk.sh/1-hNVcwcrBo8WQnhhOneTSph6cBIynRrOgPMxPapVSjc/Sheet1";
 
 const videoList = document.getElementById('videoList');
 
-// PARSE CSV LEBIH AMAN
-function parseCSV(text) {
-  const rows = text.trim().split("\n");
-  const data = rows.slice(1).map(row => {
-    const cols = row.split(/,(?=(?:(?:[^\"]*\"){2})*[^\"]*$)/);
-    return {
-      title: cols[0],
-      thumbnail: cols[1],
-      link: cols[2]
-    };
-  });
-  return data;
-}
-
-// AMBIL DATA
+// AMBIL DATA JSON
 async function getVideos() {
   const res = await fetch(sheetURL);
-  const text = await res.text();
-  const videos = parseCSV(text);
+  const videos = await res.json();
 
   displayVideos(videos);
 
@@ -44,7 +29,8 @@ function displayVideos(list) {
 
     videoList.innerHTML += `
       <div class="card" onclick="playVideo('${video.link}')">
-        <img class="thumbnail" src="${video.thumbnail}" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
+        <img class="thumbnail" src="${video.thumbnail}" 
+        onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
         <div class="title">${video.title}</div>
       </div>
     `;
